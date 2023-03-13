@@ -81,7 +81,7 @@ const compareObject = (oldObj: any, newObj: any, path: any, embeddedObjKeys: any
 
   const oldObjKeys = Object.keys(oldObj);
   const newObjKeys = Object.keys(newObj);
-  const modifiedKeys = []
+  const modifiedKeys = [];
 
   const intersectionKeys = intersection(oldObjKeys, newObjKeys);
   for (k of intersectionKeys) {
@@ -95,7 +95,7 @@ const compareObject = (oldObj: any, newObj: any, path: any, embeddedObjKeys: any
 
   for (k of oldObjKeys) {
     if (!intersectionKeys.includes(k)) {
-      const found = newObjKeys.find(x => isEqual(oldObj[k], newObj[x]));
+      const found = newObjKeys.find((x) => isEqual(oldObj[k], newObj[x]));
       if (found != null) {
         newPath = path.concat([found]);
         newKeyPath = skipPath ? keyPath : keyPath.concat([found]);
@@ -108,7 +108,7 @@ const compareObject = (oldObj: any, newObj: any, path: any, embeddedObjKeys: any
           key: getKey(newPath),
           value: newObj[found],
           oldKey: getKey(oldPath),
-          oldKeyPath: getKey(oldKeyPath),
+          oldKeyPath: getKey(oldKeyPath)
         });
       } else {
         newPath = path.concat([k]);
@@ -116,7 +116,7 @@ const compareObject = (oldObj: any, newObj: any, path: any, embeddedObjKeys: any
         changes.push({
           type: Operation.REMOVE,
           key: getKey(newPath),
-          value: oldObj[k],
+          value: oldObj[k]
         });
       }
     }
@@ -129,14 +129,13 @@ const compareObject = (oldObj: any, newObj: any, path: any, embeddedObjKeys: any
       changes.push({
         type: Operation.ADD,
         key: getKey(newPath),
-        value: newObj[k],
+        value: newObj[k]
       });
     }
   }
 
   return changes;
 };
-
 
 const compareArray = (oldObj: any, newObj: any, path: any, embeddedObjKeys: any, keyPath: any) => {
   const left = getObjectKey(embeddedObjKeys, keyPath);
