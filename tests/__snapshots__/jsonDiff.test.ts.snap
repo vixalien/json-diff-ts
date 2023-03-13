@@ -3,20 +3,20 @@
 exports[`jsonDiff#flatten Get key name for flattening when using a key function 1`] = `
 [
   {
-    "key": "2",
-    "path": "$.items",
-    "type": "ADD",
-    "value": {
-      "_id": "2",
-    },
-    "valueType": "Object",
-  },
-  {
     "key": "1",
     "path": "$.items[?(@._id='1')]",
     "type": "REMOVE",
     "value": {
       "_id": "1",
+    },
+    "valueType": "Object",
+  },
+  {
+    "key": "2",
+    "path": "$.items",
+    "type": "ADD",
+    "value": {
+      "_id": "2",
     },
     "valueType": "Object",
   },
