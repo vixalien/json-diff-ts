@@ -1,4 +1,4 @@
-import { difference, find, intersection, keyBy } from 'lodash-es';
+import { find, intersection, isEqual, keyBy } from 'lodash-es';
 
 type FunctionKey = (obj: any, getKeyName?: boolean) => any;
 
@@ -70,7 +70,7 @@ const compare = (oldObj: any, newObj: any, path: any, embeddedObjKeys: any, keyP
 };
 
 const compareObject = (oldObj: any, newObj: any, path: any, embeddedObjKeys: any, keyPath: any, skipPath = false) => {
-  let k;
+  let k: string;
   let newKeyPath;
   let newPath;
 
@@ -81,6 +81,7 @@ const compareObject = (oldObj: any, newObj: any, path: any, embeddedObjKeys: any
 
   const oldObjKeys = Object.keys(oldObj);
   const newObjKeys = Object.keys(newObj);
+  const modifiedKeys = []
 
   const intersectionKeys = intersection(oldObjKeys, newObjKeys);
   for (k of intersectionKeys) {
@@ -92,29 +93,50 @@ const compareObject = (oldObj: any, newObj: any, path: any, embeddedObjKeys: any
     }
   }
 
-  const addedKeys = difference(newObjKeys, oldObjKeys);
-  for (k of addedKeys) {
-    newPath = path.concat([k]);
-    newKeyPath = skipPath ? keyPath : keyPath.concat([k]);
-    changes.push({
-      type: Operation.ADD,
-      key: getKey(newPath),
-      value: newObj[k]
-    });
+  for (k of oldObjKeys) {
+    if (!intersectionKeys.includes(k)) {
+      const found = newObjKeys.find(x => isEqual(oldObj[k], newObj[x]));
+      if (found != null) {
+        newPath = path.concat([found]);
+        newKeyPath = skipPath ? keyPath : keyPath.concat([found]);
+        const oldPath = path.concat([k]);
+        const oldKeyPath = skipPath ? keyPath : keyPath.concat([k]);
+
+        modifiedKeys.push(found);
+        changes.push({
+          type: Operation.UPDATE,
+          key: getKey(newPath),
+          value: newObj[found],
+          oldKey: getKey(oldPath),
+          oldKeyPath: getKey(oldKeyPath),
+        });
+      } else {
+        newPath = path.concat([k]);
+        newKeyPath = skipPath ? keyPath : keyPath.concat([k]);
+        changes.push({
+          type: Operation.REMOVE,
+          key: getKey(newPath),
+          value: oldObj[k],
+        });
+      }
+    }
   }
 
-  const deletedKeys = difference(oldObjKeys, newObjKeys);
-  for (k of deletedKeys) {
-    newPath = path.concat([k]);
-    newKeyPath = skipPath ? keyPath : keyPath.concat([k]);
-    changes.push({
-      type: Operation.REMOVE,
-      key: getKey(newPath),
-      value: oldObj[k]
-    });
+  for (k of newObjKeys) {
+    if (!intersectionKeys.includes(k) && !modifiedKeys.includes(k)) {
+      newPath = path.concat([k]);
+      newKeyPath = skipPath ? keyPath : keyPath.concat([k]);
+      changes.push({
+        type: Operation.ADD,
+        key: getKey(newPath),
+        value: newObj[k],
+      });
+    }
   }
+
   return changes;
 };
+
 
 const compareArray = (oldObj: any, newObj: any, path: any, embeddedObjKeys: any, keyPath: any) => {
   const left = getObjectKey(embeddedObjKeys, keyPath);
@@ -336,6 +358,7 @@ export interface IChange {
   embeddedKey?: string | FunctionKey;
   value?: any | any[];
   oldValue?: any;
+  oldKey?: string;
   changes?: IChange[];
 }
 export type Changeset = IChange[];
